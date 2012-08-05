@@ -41,8 +41,22 @@ def tokenize(word):
 
 def pick_suggestion(word, candidates):
     """
-    Pick best candidate word
-    (word and candidates must have the same pattern)
+    Pick best candidate word using a simple heuristic score
+
+    Alternate scoring methodologies include:
+
+    Python's get_close_matches string similarity via SequenceMatcher's
+        Ratcliff-Obershelp based algorithm
+        difflib.get_close_matches(word, candidates, n=1, cutoff=0.0)[0]
+        http://docs.python.org/library/difflib.html#difflib.SequenceMatcher
+        http://hg.python.org/cpython/file/70274d53c1dd/Lib/difflib.py
+
+    Levenshtein distance or edit distance
+        http://en.wikipedia.org/wiki/Levenshtein_distance
+
+    Using a hidden markov model for each candidate
+        http://en.wikipedia.org/wiki/Viterbi_algorithm
+        http://en.wikipedia.org/wiki/Forward-backward_algorithm
     """
     word_tokens = tokenize(word)
     suggestion = None
@@ -65,7 +79,7 @@ def pick_suggestion(word, candidates):
                 # small penalization for repeating letters
                 factor *= 10/(len(w) - len(c) + 10.0)
                 score += factor * 0.8
-        print score, candidate
+        #print score, candidate
         if score > best_score:
             best_score = score
             suggestion = candidate
@@ -76,8 +90,8 @@ class SpellCmd(Cmd):
     def __init__(self, wordfile):
         Cmd.__init__(self)
         self.prompt = "> "
-        self.intro = "Spell checker thing.  Enter some words."
-        self.use_rawinput = False
+        #self.intro = "Spell checker thing.  Enter some words."
+        #self.use_rawinput = False
         self.wordfile = wordfile
 
         # populate hash
@@ -97,7 +111,7 @@ class SpellCmd(Cmd):
             exit(0)
         word = line.strip().lower()
         patt = toPattern(word)
-        print word
+        #print word
 
         if word in self.words:
             #print "{word} is correct".format(word=word)
@@ -109,13 +123,15 @@ class SpellCmd(Cmd):
             if suggestion:
                 #print "did you mean {sugg}?".format(sugg=suggestion)
                 print suggestion
-                if len(candidates) >= 2:
-                    print candidates
+                #if len(candidates) >= 2:
+                #    print candidates
             else:
-                print "NO SUGGESTION for {word} (pattern={patt})".format(
-                    word=word, patt=patt)
+                print "NO SUGGESTION"
+                #print "NO SUGGESTION for {word} (pattern={patt})".format(
+                #    word=word, patt=patt)
         else:
-            print "NO SUGGESTION for {word}".format(word=word)
+            print "NO SUGGESTION"
+            #print "NO SUGGESTION for {word}".format(word=word)
 
 
 if __name__ == "__main__":
@@ -123,10 +139,10 @@ if __name__ == "__main__":
     wordfile = "/usr/share/dict/words"
 
     sc = SpellCmd(wordfile)
-    #sc.cmdloop()
-    while True:
-        try:
-            line = raw_input("> ")
-            sc.default(line)
-        except EOFError:
-            break
+    sc.cmdloop()
+#    while True:
+#        try:
+#            line = raw_input("> ")
+#            sc.default(line)
+#        except EOFError:
+#            break
