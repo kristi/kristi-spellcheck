@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-spellcheck
+spellchecker
+
+Usage:
+    ./spellcheck.py
+
+Requirements:
+    Python 2.7
+    Uses /usr/share/dict/words for word list
 
 @author: kristi
 """
@@ -9,7 +16,6 @@ spellcheck
 import re
 from collections import defaultdict
 from cmd import Cmd
-#from difflib import get_close_matches
 
 
 VOWEL = set("aeiouy")
@@ -75,11 +81,10 @@ def pick_suggestion(word, candidates):
                 score += len(c)
             else:
                 # penalize changing vowels
-                factor = (len(set_w & set_c) + 1)/(len(set_c) + 1.0)
+                factor = (len(set_w & set_c) + 1) / (len(set_c) + 1.0)
                 # small penalization for repeating letters
-                factor *= 10/(len(w) - len(c) + 10.0)
+                factor *= 10 / (len(w) - len(c) + 10.0)
                 score += factor * 0.8
-        #print score, candidate
         if score > best_score:
             best_score = score
             suggestion = candidate
@@ -90,11 +95,9 @@ class SpellCmd(Cmd):
     def __init__(self, wordfile):
         Cmd.__init__(self)
         self.prompt = "> "
-        #self.intro = "Spell checker thing.  Enter some words."
-        #self.use_rawinput = False
+        self.intro = "Spell checker thing.  Enter some words."
         self.wordfile = wordfile
 
-        # populate hash
         self.words = dict.fromkeys(
             (line.strip().lower() for line in open(wordfile)), 1)
 
@@ -111,27 +114,18 @@ class SpellCmd(Cmd):
             exit(0)
         word = line.strip().lower()
         patt = toPattern(word)
-        #print word
 
         if word in self.words:
-            #print "{word} is correct".format(word=word)
             print word
         elif patt in self.approx:
             candidates = self.approx[patt]
             suggestion = pick_suggestion(word, candidates)
-            #suggestion = get_close_matches(word, candidates, n=1, cutoff=0.0)[0]
             if suggestion:
-                #print "did you mean {sugg}?".format(sugg=suggestion)
                 print suggestion
-                #if len(candidates) >= 2:
-                #    print candidates
             else:
                 print "NO SUGGESTION"
-                #print "NO SUGGESTION for {word} (pattern={patt})".format(
-                #    word=word, patt=patt)
         else:
             print "NO SUGGESTION"
-            #print "NO SUGGESTION for {word}".format(word=word)
 
 
 if __name__ == "__main__":
@@ -140,9 +134,3 @@ if __name__ == "__main__":
 
     sc = SpellCmd(wordfile)
     sc.cmdloop()
-#    while True:
-#        try:
-#            line = raw_input("> ")
-#            sc.default(line)
-#        except EOFError:
-#            break
