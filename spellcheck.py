@@ -52,19 +52,14 @@ def pick_suggestion(word, candidates):
         score = 1
         for w, c in zip(word_tokens, candidate_tokens):
             if w == c:
-                score += len(w)
+                score += len(c)
             elif w[0] in VOWEL and c[0] in VOWEL:
                 if len(w) < len(c):
                     score = 0
                     break
-                if set(w) == set(c):
-                    factor = 0.9
-                else:
-                    factor = 0.6
-                    factor *= abs(len(w) - len(c)) / max(len(w), len(c))
-                score += len(w) * factor
+                score += len(c) * (len(set(w) & set(c)) + 1)/(len(set(c)) + 1) * 0.9
             elif w[0] == c[0]:
-                score += len(w) * abs(len(w) - len(c)) / max(len(w), len(c)) * 0.8
+                score += len(c) / (1 + len(w)) * 0.8
             else:
                 print "score error: no match?", w, c
                 score = 0
@@ -108,11 +103,11 @@ class SpellCmd(Cmd):
             candidates = self.approx[patt]
             suggestion = pick_suggestion(word, candidates)
             if suggestion:
-                print "did you mean {suggestion}?".format(suggestion=suggestion)
+                print "did you mean {sugg}?".format(sugg=suggestion)
                 if len(candidates) >= 2:
                     print candidates
             else:
-                print "NO SUGGESTION for {word} {patt}".format(
+                print "NO SUGGESTION for {word} (pattern={patt})".format(
                     word=word, patt=patt)
         else:
             print "NO SUGGESTION for {word}".format(word=word)
