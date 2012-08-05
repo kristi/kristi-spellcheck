@@ -9,6 +9,7 @@ spellcheck
 import re
 from collections import defaultdict
 from cmd import Cmd
+#from difflib import get_close_matches
 
 
 VOWEL = set("aeiouy")
@@ -22,8 +23,7 @@ def toPattern(word):
     pattern = word
     # Vowels get replaced with 'A'
     pattern = VOWEL_RE.sub('A', pattern)
-    # Repeated letters are replaced with a single capital letter
-    #pattern = REPEAT_RE.sub(toUpper, pattern)
+    # Repeated letters are replaced with a single letter
     pattern = REPEAT_RE.sub(r'\1', pattern)
 
     return pattern
@@ -33,8 +33,8 @@ def tokenize(word):
     """
     Split word by repeated character.  Vowels get lumped together.
 
-    >>> tokenize('hellooo')
-    ['h', 'e', 'll', 'ooo']
+    >>> tokenize('oreooo')
+    ['o', 'r', 'eooo']
     """
     return [m.group(0) for m in re.finditer(r'[aeiouy]+|(.)\1*', word)]
 
@@ -49,21 +49,23 @@ def pick_suggestion(word, candidates):
     best_score = 0
     for candidate in candidates:
         candidate_tokens = tokenize(candidate)
-        score = 1
+        score = 1.0
         for w, c in zip(word_tokens, candidate_tokens):
-            if w == c:
-                score += len(c)
-            elif w[0] in VOWEL and c[0] in VOWEL:
-                if len(w) < len(c):
-                    score = 0
-                    break
-                score += len(c) * (len(set(w) & set(c)) + 1)/(len(set(c)) + 1) * 0.9
-            elif w[0] == c[0]:
-                score += len(c) / (1 + len(w)) * 0.8
-            else:
-                print "score error: no match?", w, c
+            set_w = set(w)
+            set_c = set(c)
+            # Don't choose words with fewer letters
+            if len(w) < len(c):
                 score = 0
                 break
+            if w == c:
+                score += len(c)
+            else:
+                # penalize changing vowels
+                factor = (len(set_w & set_c) + 1)/(len(set_c) + 1.0)
+                # small penalization for repeating letters
+                factor *= 10/(len(w) - len(c) + 10.0)
+                score += factor * 0.8
+        print score, candidate
         if score > best_score:
             best_score = score
             suggestion = candidate
@@ -98,12 +100,15 @@ class SpellCmd(Cmd):
         print word
 
         if word in self.words:
-            print "{word} is correct".format(word=word)
+            #print "{word} is correct".format(word=word)
+            print word
         elif patt in self.approx:
             candidates = self.approx[patt]
             suggestion = pick_suggestion(word, candidates)
+            #suggestion = get_close_matches(word, candidates, n=1, cutoff=0.0)[0]
             if suggestion:
-                print "did you mean {sugg}?".format(sugg=suggestion)
+                #print "did you mean {sugg}?".format(sugg=suggestion)
+                print suggestion
                 if len(candidates) >= 2:
                     print candidates
             else:

@@ -17,11 +17,11 @@ VOWEL = 'aeiouy'
 
 
 def misspell(letter):
-    if letter in VOWEL and random() < 0.1:
+    if letter in VOWEL and random() < 0.5:
         letter = choice(VOWEL)
-    if random() < 0.1:
+    if random() < 0.2:
         letter = letter.upper()
-    return letter * randint(1, 3)
+    return letter * randint(1, 4)
 
 
 #for word in sample(words, 1000):
@@ -29,7 +29,7 @@ for i in xrange(5000):
     word = choice(words)
     letters = list(word)
     for i in xrange(len(letters)):
-        if random() < 0.25:
+        if random() < 0.3:
             c = letters[i]
             letters[i] = misspell(c)
     print ''.join(letters)
