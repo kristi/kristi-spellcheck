@@ -9,6 +9,8 @@ Generates misspelled words where misspellings can be:
 Usage:
     ./typo.py
 
+    ./typo.py | ./spellcheck.py | grep "NO SUGGESTION"
+
 Requirements:
     Python 2.7
     Uses /usr/share/dict/words for word list
